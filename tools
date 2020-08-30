@@ -1,0 +1,148 @@
+#!/bin/bash
+
+export TOP_LEVEL_DIR=`git rev-parse --show-toplevel`
+export PATH=$(echo ${PATH} | sed "s,${TOP_LEVEL_DIR}/bin,,g" | sed 's/:*$//')
+export PATH=$PATH:$TOP_LEVEL_DIR/bin
+export DEPOT_TOOLS_WIN_TOOLCHAIN=0
+
+download-zip(){
+    pushd . > /dev/null
+    cd $TOP_LEVEL_DIR
+    curl $1 -L --output $2
+    mkdir -p bin
+    cd bin
+    unzip -o $TOP_LEVEL_DIR/$2
+    popd  > /dev/null
+}
+
+git-clone(){
+    pushd .  > /dev/null
+    if [ ! -d "$TOP_LEVEL_DIR/$2" ]; then
+        git clone $1 $TOP_LEVEL_DIR/$2
+        cd $TOP_LEVEL_DIR/$2
+        git config advice.detachedHead false
+        git checkout $3
+    fi
+    popd  > /dev/null
+}
+
+update-gn-files(){
+    mkdir -p $TOP_LEVEL_DIR/v8/third_party/zlib
+    mkdir -p $TOP_LEVEL_DIR/v8/third_party/icu
+
+    cp $TOP_LEVEL_DIR/zlib.gn $TOP_LEVEL_DIR/v8/third_party/zlib/BUILD.gn
+    cp $TOP_LEVEL_DIR/icu.gn $TOP_LEVEL_DIR/v8/third_party/icu/BUILD.gn
+}
+
+fetch(){
+    . VERSION
+
+    download-zip https://chrome-infra-packages.appspot.com/dl/gn/gn/windows-amd64/+/"${GN_VERSION}" gn.zip
+
+    git-clone "${V8_REPO}" v8 "${V8_VERSION}"-AG
+    git-clone "${BUILD_REPO}" v8/build "${V8_VERSION}"-AG
+    git-clone https://chromium.googlesource.com/chromium/src/base/trace_event/common.git v8/base/trace_event/common "${COMMON_HASH}"
+    git-clone https://chromium.googlesource.com/external/github.com/google/googletest.git v8/third_party/googletest/src "${GOOGLETEST_HASH}"
+    git-clone https://chromium.googlesource.com/chromium/src/third_party/jinja2.git v8/third_party/jinja2 "${JINJA2_HASH}"
+    git-clone https://chromium.googlesource.com/chromium/src/third_party/markupsafe.git v8/third_party/markupsafe "${MARKUPSAFE_HASH}"
+    git-clone https://chromium.googlesource.com/chromium/src/third_party/zlib.git v8/third_party/zlib "${ZLIB_HASH}"
+
+    python v8/build/util/lastchange.py -o v8/build/util/LASTCHANGE
+
+    update-gn-files
+}
+
+# Usage build_mingw_shared <arch> <debug>
+# example build_mingw_shared x64 true
+build-mingw-shared(){
+    pushd .  > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    gn gen "${TOP_LEVEL_DIR}/out/mingw-shared-$1-$2" --args="is_debug=$2 is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=true"
+    ninja -C "${TOP_LEVEL_DIR}/out/mingw-shared-$1-$2"
+    popd  > /dev/null
+}
+
+# Usage build_mingw_static <arch> <debug>
+# example build_mingw_static x64 true
+build-mingw-static(){
+    pushd .  > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    gn gen "${TOP_LEVEL_DIR}/out/mingw-static-$1-$2" --args="is_debug=$2 is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false"
+    ninja -C "${TOP_LEVEL_DIR}/out/mingw-static-$1-$2"
+    popd  > /dev/null
+}
+
+# Usage build_msvc_shared <arch> <debug> <pkg_config_libdir>
+# example build_msvc_shared x64 false /c/vcpkg/installed/x64-windows/lib/pkgconfig
+build-msvc-shared(){
+    pushd .  > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    gn gen "${TOP_LEVEL_DIR}/out/msvc-shared-${1}-${2}" --args="is_win=true is_mingw=false pkg_config_libdir=\"${3}\" is_debug=${2} is_component_build=true target_cpu=\"${1}\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=${2} v8_use_external_startup_data=true"
+    ninja -C "${TOP_LEVEL_DIR}/out/msvc-shared-${1}-${2}"
+    popd  > /dev/null
+}
+
+# Usage build_msvc_static <arch> <debug> <pkg_config_libdir>
+# example build_msvc_static x64 false /c/vcpkg/installed/x64-windows/lib/pkgconfig
+build-msvc-static(){
+    pushd .  > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    gn gen "${TOP_LEVEL_DIR}/out/msvc-static-${1}-${2}" --args="is_win=true is_mingw=false pkg_config_libdir=\"${3}\" is_debug=${2} is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false"
+    ninja -C "${TOP_LEVEL_DIR}/out/msvc-static-${1}-${2}"
+    popd  > /dev/null
+}
+
+gitk-build(){
+    pushd . > /dev/null
+    cd $TOP_LEVEL_DIR/v8/build
+    gitk "$@"
+    popd  > /dev/null
+}
+
+git-build(){
+    pushd . > /dev/null
+    cd $TOP_LEVEL_DIR/v8/build
+    git "$@"
+    popd  > /dev/null
+}
+
+gitk-v8(){
+    pushd . > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    gitk "$@"
+    popd > /dev/null
+}
+
+git-v8(){
+    pushd . > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    git "$@"
+    popd > /dev/null
+}
+
+print-versions(){
+    . VERSION
+    echo V8_VERSION      = ${V8_VERSION}
+    echo V8_REPO         = ${V8_REPO}
+    echo BUILD_REPO      = ${BUILD_REPO}
+    echo GN_VERSION      = ${GN_VERSION}
+    echo COMMON_HASH     = ${COMMON_HASH}
+    echo GOOGLETEST_HASH = ${GOOGLETEST_HASH}
+    echo JINJA2_HASH     = ${JINJA2_HASH}
+    echo MARKUPSAFE_HASH = ${MARKUPSAFE_HASH}
+    echo ZLIB_HASH       = ${ZLIB_HASH}
+}
+
+write-build-patch(){
+    . VERSION
+    git-build diff ${V8_VERSION} > ${TOP_LEVEL_DIR}/build.patch
+    sed -i 's/[ \t]*$//' ${TOP_LEVEL_DIR}/build.patch
+    sed -i 's/100755/100644/' ${TOP_LEVEL_DIR}/build.patch
+}
+
+write-v8-patch(){
+    . VERSION
+    git-v8 diff ${V8_VERSION} > ${TOP_LEVEL_DIR}/v8.patch
+    sed -i 's/[ \t]*$//' ${TOP_LEVEL_DIR}/v8.patch
+    sed -i 's/100755/100644/' ${TOP_LEVEL_DIR}/v8.patch
+}

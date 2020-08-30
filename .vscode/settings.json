@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "tools": "shellscript",
+        "VERSION": "shellscript"
+    },
+}
