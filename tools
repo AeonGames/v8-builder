@@ -138,6 +138,7 @@ write-build-patch(){
     git-build diff ${V8_VERSION} > ${TOP_LEVEL_DIR}/build.patch
     sed -i 's/[ \t]*$//' ${TOP_LEVEL_DIR}/build.patch
     sed -i 's/100755/100644/' ${TOP_LEVEL_DIR}/build.patch
+    sha256sum ${TOP_LEVEL_DIR}/build.patch
 }
 
 write-v8-patch(){
@@ -145,4 +146,5 @@ write-v8-patch(){
     git-v8 diff ${V8_VERSION} > ${TOP_LEVEL_DIR}/v8.patch
     sed -i 's/[ \t]*$//' ${TOP_LEVEL_DIR}/v8.patch
     sed -i 's/100755/100644/' ${TOP_LEVEL_DIR}/v8.patch
+    sha256sum ${TOP_LEVEL_DIR}/v8.patch
 }
