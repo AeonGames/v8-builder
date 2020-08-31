@@ -35,7 +35,7 @@ config("icu_config") {
     "USING_SYSTEM_ICU=1",
   ]
   if(is_win){
-    if(!is_component_build) {
+    if(!is_mingw && !is_component_build) {
       ldflags = ["/ignore:4099"] # needed on CI builds
     }
     defines += [ "UCHAR_TYPE=wchar_t" ]
