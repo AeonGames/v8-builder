@@ -154,3 +154,13 @@ write-v8-patch(){
     sed -i 's/100755/100644/' ${TOP_LEVEL_DIR}/v8.patch
     sha256sum ${TOP_LEVEL_DIR}/v8.patch
 }
+
+add-remote-upstreams(){
+    git-build remote add upstream https://chromium.googlesource.com/chromium/src/build.git
+    git-v8 remote add upstream https://github.com/v8/v8.git
+}
+
+update-upstreams(){
+    git-build fetch upstream
+    git-v8 fetch upstream
+}
