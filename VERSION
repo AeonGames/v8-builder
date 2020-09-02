@@ -1,5 +1,5 @@
 #!/bin/bash
-V8_VERSION=8.3.110.13
+V8_VERSION=8.5.210.20
 V8_REPO=https://github.com/AeonGames/v8.git
 BUILD_REPO=https://github.com/AeonGames/build.git
 GN_VERSION=T6zC_RVU2N-QFO6x3LU0FgQ3PBH8CyOCYBwvOeuGIEgC
