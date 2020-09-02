@@ -51,6 +51,8 @@ fetch(){
     git-clone https://chromium.googlesource.com/chromium/src/third_party/markupsafe.git v8/third_party/markupsafe "${MARKUPSAFE_HASH}"
     git-clone https://chromium.googlesource.com/chromium/src/third_party/zlib.git v8/third_party/zlib "${ZLIB_HASH}"
 
+    find $TOP_LEVEL_DIR/v8/third_party/zlib -maxdepth 1 -not -name "google" -not -name ".git" -not -name "zlib" -exec rm -rf {} \;
+
     python v8/build/util/lastchange.py -o v8/build/util/LASTCHANGE
 
     update-gn-files
@@ -163,4 +165,9 @@ add-remote-upstreams(){
 update-upstreams(){
     git-build fetch upstream
     git-v8 fetch upstream
+}
+
+setup-depot-tools(){
+    git-clone https://chromium.googlesource.com/chromium/tools/depot_tools.git depot_tools
+    export PATH=${TOP_LEVEL_DIR}/depot_tools:$PATH
 }
