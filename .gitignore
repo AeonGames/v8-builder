@@ -1,6 +1,6 @@
 out
 v8
 bin
-gn.zip
+gn-*.zip
 build.patch
 v8.patch

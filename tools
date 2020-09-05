@@ -41,7 +41,8 @@ update-gn-files(){
 fetch(){
     . VERSION
 
-    download-zip https://chrome-infra-packages.appspot.com/dl/gn/gn/windows-amd64/+/"${GN_VERSION}" gn.zip
+    download-zip https://chrome-infra-packages.appspot.com/dl/gn/gn/windows-amd64/+/"${GN_WINDOWS_VERSION}" gn-windows.zip
+    download-zip https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-amd64/+/"${GN_LINUX_VERSION}" gn-linux.zip
 
     git-clone "${V8_REPO}" v8 "${V8_VERSION}"-AG
     git-clone "${BUILD_REPO}" v8/build "${V8_VERSION}"-AG
@@ -97,6 +98,28 @@ build-msvc-static(){
     cd $TOP_LEVEL_DIR/v8
     gn gen "${TOP_LEVEL_DIR}/out/msvc-static-${1}-${2}" --args="is_debug=$2 is_mingw=false pkg_config_libdir=\"$3\" is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false use_sysroot=false"
     ninja -C "${TOP_LEVEL_DIR}/out/msvc-static-${1}-${2}"
+    popd  > /dev/null
+}
+
+# Usage build_linux_shared <arch> <debug>
+# example build_linux_shared x64 true
+build-linux-shared(){
+    update-gn-files
+    pushd .  > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    gn gen "${TOP_LEVEL_DIR}/out/linux-shared-$1-$2" --args="is_debug=$2 use_sysroot=false is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=true"
+    ninja -C "${TOP_LEVEL_DIR}/out/linux-shared-$1-$2"
+    popd  > /dev/null
+}
+
+# Usage build_linux_static <arch> <debug>
+# example build_linux_static x64 true
+build-linux-static(){
+    update-gn-files
+    pushd .  > /dev/null
+    cd $TOP_LEVEL_DIR/v8
+    gn gen "${TOP_LEVEL_DIR}/out/linux-static-$1-$2" --args="is_debug=$2 use_sysroot=false is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false"
+    ninja -C "${TOP_LEVEL_DIR}/out/linux-static-$1-$2"
     popd  > /dev/null
 }
 
