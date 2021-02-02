@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "tools": "shellscript",
-        "VERSION": "shellscript"
+        "VERSION": "shellscript",
+        "vector": "cpp"
     },
 }
