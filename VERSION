@@ -1,7 +1,7 @@
 #!/bin/bash
-V8_VERSION=9.0.257.17
-V8_REPO=https://github.com/AeonGames/v8.git
-BUILD_REPO=https://github.com/AeonGames/build.git
+V8_VERSION=9.1.269.39
+V8_REPO=git@github.com:AeonGames/v8.git
+BUILD_REPO=git@github.com:AeonGames/build.git
 GN_WINDOWS_VERSION=T6zC_RVU2N-QFO6x3LU0FgQ3PBH8CyOCYBwvOeuGIEgC
 GN_LINUX_VERSION=HICCNZv5mf9K4uayp5N-E58q5g5eaCakZ9-48I9vvewC
 COMMON_HASH=dab187b372fc17e51f5b9fad8201813d0aed5129
