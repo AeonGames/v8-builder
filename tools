@@ -34,11 +34,11 @@ update-gn-files(){
     mkdir -p $TOP_LEVEL_DIR/v8/third_party/zlib
     mkdir -p $TOP_LEVEL_DIR/v8/third_party/icu
 
-    cp $TOP_LEVEL_DIR/$1/zlib.gn $TOP_LEVEL_DIR/v8/third_party/zlib/BUILD.gn
-    cp $TOP_LEVEL_DIR/$1/icu.gn $TOP_LEVEL_DIR/v8/third_party/icu/BUILD.gn
-    cp $TOP_LEVEL_DIR/$1/config.gni $TOP_LEVEL_DIR/v8/third_party/icu/
+    cp -u $TOP_LEVEL_DIR/$1/zlib.gn $TOP_LEVEL_DIR/v8/third_party/zlib/BUILD.gn
+    cp -u $TOP_LEVEL_DIR/$1/icu.gn $TOP_LEVEL_DIR/v8/third_party/icu/BUILD.gn
+    cp -u $TOP_LEVEL_DIR/$1/config.gni $TOP_LEVEL_DIR/v8/third_party/icu/
     touch $TOP_LEVEL_DIR/v8/third_party/icu/sources.gni
-    cp $TOP_LEVEL_DIR/gclient_args.gni $TOP_LEVEL_DIR/v8/build/config/gclient_args.gni
+    cp -u $TOP_LEVEL_DIR/gclient_args.gni $TOP_LEVEL_DIR/v8/build/config/gclient_args.gni
 }
 
 fetch(){
