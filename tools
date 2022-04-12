@@ -36,6 +36,8 @@ update-gn-files(){
 
     cp $TOP_LEVEL_DIR/$1/zlib.gn $TOP_LEVEL_DIR/v8/third_party/zlib/BUILD.gn
     cp $TOP_LEVEL_DIR/$1/icu.gn $TOP_LEVEL_DIR/v8/third_party/icu/BUILD.gn
+    cp $TOP_LEVEL_DIR/$1/config.gni $TOP_LEVEL_DIR/v8/third_party/icu/
+    touch $TOP_LEVEL_DIR/v8/third_party/icu/sources.gni
     cp $TOP_LEVEL_DIR/gclient_args.gni $TOP_LEVEL_DIR/v8/build/config/gclient_args.gni
 }
 
@@ -53,9 +55,29 @@ fetch(){
     git-clone https://chromium.googlesource.com/chromium/src/third_party/markupsafe.git v8/third_party/markupsafe "${MARKUPSAFE_HASH}"
     git-clone https://chromium.googlesource.com/chromium/src/third_party/zlib.git v8/third_party/zlib "${ZLIB_HASH}"
 
-    find $TOP_LEVEL_DIR/v8/third_party/zlib -maxdepth 1 -not -name "google" -not -name ".git" -not -name "zlib" -exec rm -rf {} \;
+    #find $TOP_LEVEL_DIR/v8/third_party/zlib -maxdepth 1 -not -name "google" -not -name ".git" -not -name "zlib" -exec rm -rf {} \;
 
     python v8/build/util/lastchange.py -o v8/build/util/LASTCHANGE
+}
+
+checkout-main(){
+    pushd .  > /dev/null
+    cd "$TOP_LEVEL_DIR"/v8
+    git checkout main
+    cd "$TOP_LEVEL_DIR"/v8/build
+    git checkout main
+    cd "$TOP_LEVEL_DIR"/v8/base/trace_event/common
+    git checkout main
+    cd "$TOP_LEVEL_DIR"/v8/third_party/googletest/src
+    git checkout main
+    cd "$TOP_LEVEL_DIR"/v8/third_party/jinja2
+    git checkout main
+    cd "$TOP_LEVEL_DIR"/v8/third_party/markupsafe
+    git checkout main
+    cd "$TOP_LEVEL_DIR"/v8/third_party/zlib
+    git checkout main
+    #python "$TOP_LEVEL_DIR"/v8/build/util/lastchange.py -o "$TOP_LEVEL_DIR"/v8/build/util/LASTCHANGE
+    popd  > /dev/null
 }
 
 # Usage build-mingw-shared <arch> <debug>
@@ -64,7 +86,7 @@ build-mingw-shared(){
     update-gn-files mingw
     pushd .  > /dev/null
     cd $TOP_LEVEL_DIR/v8
-    gn gen "${TOP_LEVEL_DIR}/out/mingw-shared-$1-$2" --args="is_debug=$2 is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=true"
+    gn gen "${TOP_LEVEL_DIR}/out/mingw-shared-$1-$2" --args="is_debug=$2 is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false zlib_use_system_library=true icu_use_system_library=true enable_iterator_debugging=$2 v8_use_external_startup_data=true"
     ninja -C "${TOP_LEVEL_DIR}/out/mingw-shared-$1-$2"
     popd  > /dev/null
 }
@@ -75,29 +97,29 @@ build-mingw-static(){
     update-gn-files mingw
     pushd .  > /dev/null
     cd $TOP_LEVEL_DIR/v8
-    gn gen "${TOP_LEVEL_DIR}/out/mingw-static-$1-$2" --args="is_debug=$2 is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false"
+    gn gen "${TOP_LEVEL_DIR}/out/mingw-static-$1-$2" --args="is_debug=$2 is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false zlib_use_system_library=true icu_use_system_library=true enable_iterator_debugging=$2 v8_use_external_startup_data=false"
     ninja -C "${TOP_LEVEL_DIR}/out/mingw-static-$1-$2"
     popd  > /dev/null
 }
 
 # Usage build-msvc-shared <arch> <debug> <pkg_config_libdir>
-# example build-msvc-shared x64 false /c/Code/vcpkg/installed/x64-windows/lib/pkgconfig
+# example build-msvc-shared x64 false C:\\Code\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig
 build-msvc-shared(){
     update-gn-files msvc
     pushd .  > /dev/null
     cd $TOP_LEVEL_DIR/v8
-    gn gen "${TOP_LEVEL_DIR}/out/msvc-shared-${1}-${2}" --args="is_debug=$2 pkg_config_libdir=\"$3\" is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=${2} v8_use_external_startup_data=true use_sysroot=false"
+    gn gen "${TOP_LEVEL_DIR}/out/msvc-shared-${1}-${2}" --args="is_debug=$2 pkg_config_libdir=\"$3\" is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false zlib_use_system_library=true icu_use_system_library=true enable_iterator_debugging=${2} v8_use_external_startup_data=true use_sysroot=false"
     ninja -C "${TOP_LEVEL_DIR}/out/msvc-shared-${1}-${2}"
     popd  > /dev/null
 }
 
 # Usage build-msvc-static <arch> <debug> <pkg_config_libdir>
-# example build-msvc-static x64 false /c/vcpkg/installed/x64-windows/lib/pkgconfig
+# example build-msvc-static x64 false C:\\Code\\vcpkg\\installed\\x64-windows\\lib\\pkgconfig
 build-msvc-static(){
     update-gn-files msvc
     pushd .  > /dev/null
     cd $TOP_LEVEL_DIR/v8
-    gn gen "${TOP_LEVEL_DIR}/out/msvc-static-${1}-${2}" --args="is_debug=$2 pkg_config_libdir=\"$3\" is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false use_sysroot=false"
+    gn gen "${TOP_LEVEL_DIR}/out/msvc-static-${1}-${2}" --args="is_debug=$2 pkg_config_libdir=\"$3\" is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_system_library=true enable_iterator_debugging=$2 v8_use_external_startup_data=false use_sysroot=false"
     ninja -C "${TOP_LEVEL_DIR}/out/msvc-static-${1}-${2}"
     popd  > /dev/null
 }
@@ -108,7 +130,7 @@ build-linux-shared(){
     update-gn-files mingw
     pushd .  > /dev/null
     cd $TOP_LEVEL_DIR/v8
-    gn gen "${TOP_LEVEL_DIR}/out/linux-shared-$1-$2" --args="is_debug=$2 use_sysroot=false is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=true"
+    gn gen "${TOP_LEVEL_DIR}/out/linux-shared-$1-$2" --args="is_debug=$2 use_sysroot=false is_component_build=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false zlib_use_system_library=true icu_use_system_library=true enable_iterator_debugging=$2 v8_use_external_startup_data=true"
     ninja -C "${TOP_LEVEL_DIR}/out/linux-shared-$1-$2"
     popd  > /dev/null
 }
@@ -119,7 +141,7 @@ build-linux-static(){
     update-gn-files
     pushd .  > /dev/null
     cd $TOP_LEVEL_DIR/v8
-    gn gen "${TOP_LEVEL_DIR}/out/linux-static-$1-$2" --args="is_debug=$2 use_sysroot=false is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false"
+    gn gen "${TOP_LEVEL_DIR}/out/linux-static-$1-$2" --args="is_debug=$2 use_sysroot=false is_component_build=false v8_monolithic=true target_cpu=\"$1\" is_clang=false use_custom_libcxx=false v8_enable_verify_heap=false icu_disable_thin_archive=false zlib_use_system_library=true icu_use_data_file=false enable_iterator_debugging=$2 v8_use_external_startup_data=false"
     ninja -C "${TOP_LEVEL_DIR}/out/linux-static-$1-$2"
     popd  > /dev/null
 }
