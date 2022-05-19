@@ -47,8 +47,8 @@ fetch(){
     download-zip https://chrome-infra-packages.appspot.com/dl/gn/gn/windows-amd64/+/"${GN_WINDOWS_VERSION}" gn-windows.zip
     download-zip https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-amd64/+/"${GN_LINUX_VERSION}" gn-linux.zip
 
-    git-clone "${V8_REPO}" v8 "${V8_VERSION}"-AG
-    git-clone "${BUILD_REPO}" v8/build "${V8_VERSION}"-AG
+    git-clone "${V8_REPO}" v8
+    git-clone "${BUILD_REPO}" v8/build
     git-clone https://chromium.googlesource.com/chromium/src/base/trace_event/common.git v8/base/trace_event/common "${COMMON_HASH}"
     git-clone https://chromium.googlesource.com/external/github.com/google/googletest.git v8/third_party/googletest/src "${GOOGLETEST_HASH}"
     git-clone https://chromium.googlesource.com/chromium/src/third_party/jinja2.git v8/third_party/jinja2 "${JINJA2_HASH}"
